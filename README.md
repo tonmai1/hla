@@ -1,47 +1,61 @@
-# HLA Java Coursework
+# งานแลป Java — HLA
 
-Java labs for **High Level Architecture (HLA)**, starting with Week 1: language fundamentals, OOP, and collections.
+โปรเจกต์นี้ใช้เรียน **High Level Architecture (HLA)** เริ่มจากสัปดาห์ที่ 1: พื้นฐาน Java, OOP และ Collections
 
-Requires **Java 17+** (this workspace is set up for OpenJDK 21).
+**จุดประสงค์คือไม่ต้องติดตั้ง Eclipse IDE** เขียน รัน และดีบัก Java ได้ใน Cursor / VS Code พร้อมปุ่ม Run | Debug เหมือน Eclipse และสร้างแพ็กเกจ/คลาสใหม่ด้วยสคริปต์แทนเมนู New ของ Eclipse
 
-## Layout
+ต้องการ **Java 17 ขึ้นไป** (โปรเจกต์นี้ตั้งค่าไว้กับ OpenJDK 21)
+
+## ส่วนขยายที่แนะนำ
+
+เมื่อเปิดโฟลเดอร์นี้ Cursor / VS Code จะแนะนำส่วนขยายให้ติดตั้ง กด **Install** ได้เลย หรือค้นจากชื่อด้านล่าง
+
+| ส่วนขยาย | รหัส | ใช้ทำอะไร |
+| --- | --- | --- |
+| **Extension Pack for Java** | `vscjava.vscode-java-pack` | รัน / ดีบัก / IntelliSense ไฟล์ `.java` ไม่ต้องใช้ Eclipse |
+| **Python** | `ms-python.python` | รัน `scripts/new_java.py` และตัวช่วยในโน้ตบุ๊ก |
+| **Jupyter** | `ms-toolsai.jupyter` | เปิดโน้ตบุ๊กแล้วกด play เพื่อรันตัวอย่าง Java |
+
+ส่วนขยาย Java นี้รวม Language Support for Java, Debugger for Java และ Project Manager for Java ไว้แล้ว
+
+## โครงสร้างโฟลเดอร์
 
 ```
-week1/unit1/     Java fundamentals (variables, strings, conditions, loops, arrays)
-week1/unit2/     OOP (class, encapsulation, inheritance, polymorphism, exceptions)
-week1/unit3/     Collections, packages, sockets
-week1/test/      Scratch / practice files
-notebooks/       Jupyter notebooks that compile and run the Java examples
-scripts/         Helpers (create a new Java package/class)
+week1/unit1/     พื้นฐาน Java (ตัวแปร, สตริง, เงื่อนไข, ลูป, อาร์เรย์)
+week1/unit2/     OOP (คลาส, encapsulation, inheritance, polymorphism, exception)
+week1/unit3/     Collections, แพ็กเกจ, ซ็อกเก็ต
+week1/test/      ไฟล์ทดลองเขียนเอง
+notebooks/       โน้ตบุ๊ก Jupyter ที่คอมไพล์แล้วรันตัวอย่าง Java
+scripts/         สร้างแพ็กเกจ / คลาสใหม่ (แทน Eclipse New)
 ```
 
-Original slides and source dumps live under `drive-download-20261021T024709Z-1-001/`.
+สไลด์และซอร์สต้นฉบับอยู่ใน `drive-download-20261021T024709Z-1-001/`
 
-## Run a Java example
+## วิธีรันตัวอย่าง Java
 
-From the repo root:
+เปิดไฟล์ `.java` แล้วกด **Run | Debug** ที่เมธอด `main`
+
+หรือรันจากเทอร์มินัลที่รากโปรเจกต์:
 
 ```bash
 javac -d bin week1/unit1/Example01Variables.java
 java -cp bin week1.unit1.Example01Variables
 ```
 
-In Cursor / VS Code, open a `.java` file and use **Run | Debug**.
-
-Create a new package or class (Eclipse-style):
+สร้างแพ็กเกจหรือคลาสใหม่ (แทน Eclipse: New > Package / Class):
 
 ```bash
 python3 scripts/new_java.py
 ```
 
-## Notebooks
+## โน้ตบุ๊ก
 
-Each notebook loads `notebooks/java_lab.py`, then compiles and runs the matching `.java` file.
+แต่ละโน้ตบุ๊กโหลด `notebooks/java_lab.py` แล้วคอมไพล์และรันไฟล์ `.java` ที่ตรงกัน
 
-| Notebook | Topic |
+| โน้ตบุ๊ก | เนื้อหา |
 | --- | --- |
-| `notebooks/Week1_Unit1_Fundamentals.ipynb` | Variables, operators, strings, Scanner, conditions, switch, loops, arrays |
-| `notebooks/Week1_Unit2_OOP.ipynb` | Class, methods, constructor, encapsulation, inheritance, interfaces |
-| `notebooks/Week1_Unit3_Collections.ipynb` | ArrayList, HashMap, for-each, packages, sockets |
+| `notebooks/Week1_Unit1_Fundamentals.ipynb` | ตัวแปร, ตัวดำเนินการ, สตริง, Scanner, เงื่อนไข, switch, ลูป, อาร์เรย์ |
+| `notebooks/Week1_Unit2_OOP.ipynb` | คลาส, เมธอด, constructor, encapsulation, inheritance, interface |
+| `notebooks/Week1_Unit3_Collections.ipynb` | ArrayList, HashMap, for-each, แพ็กเกจ, ซ็อกเก็ต |
 
-Run any code cell (Shift+Enter). You do not have to start from the first cell. To try your own Java, edit the `run_snippet` cell in the notebook.
+กด play ที่เซลล์โค้ด หรือ Shift+Enter ไม่จำเป็นต้องเริ่มจากเซลล์แรก ถ้าอยากลองเขียนเอง ให้แก้เซลล์ `run_snippet` ในโน้ตบุ๊ก
