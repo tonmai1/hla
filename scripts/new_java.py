@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create a Java package (and optional class) the way Eclipse New > Package / Class does.
+"""Create a Java package and class, or a class in an existing package.
 
 Run with no arguments to get a menu:
   python3 scripts/new_java.py
@@ -68,11 +68,15 @@ def check_class(name: str) -> str:
 
 
 def class_source(package: str, class_name: str, with_main: bool) -> str:
-    lines = [f"package {package};", "", f"public class {class_name} {{"]
+    qualified = f"{package}.{class_name}" if package else class_name
+    lines: list[str] = []
+    if package:
+        lines += [f"package {package};", ""]
+    lines.append(f"public class {class_name} {{")
     if with_main:
         lines += [
             "\tpublic static void main(String[] args) {",
-            f'\t\tSystem.out.println("Hello from {package}.{class_name}");',
+            f'\t\tSystem.out.println("Hello from {qualified}");',
             "\t}",
         ]
     lines.append("}")
@@ -122,10 +126,17 @@ def join_package(base_dir: Path, relative_package: str) -> str:
     return f"{prefix}.{entered}"
 
 
+def package_folder(package: str) -> Path:
+    if not package:
+        return ROOT
+    return ROOT.joinpath(*package.split("."))
+
+
 def create(package: str, class_name: str = "", with_main: bool = True) -> None:
-    folder = ROOT.joinpath(*package.split("."))
+    folder = package_folder(package)
     folder.mkdir(parents=True, exist_ok=True)
-    print(f"Package folder: {folder.relative_to(ROOT)}  ({package})")
+    label = package if package else "(default package)"
+    print(f"Package folder: {folder.relative_to(ROOT)}  ({label})")
 
     if not class_name:
         print("Done. Package only — no class file yet.")
@@ -172,7 +183,7 @@ def ask_directory() -> Path:
     labels = [label for label, _ in dirs]
     labels.append("Other folder (type a path)")
     labels.append("Quit")
-    pick = ask_choice("Which directory should the package be created in?", labels)
+    pick = ask_choice("Which directory should the new package be created in?", labels)
     if pick == len(labels):
         print("Cancelled.")
         sys.exit(0)
@@ -193,44 +204,99 @@ def ask_directory() -> Path:
     return dirs[pick - 1][1]
 
 
+def existing_packages() -> list[tuple[str, Path]]:
+    found: dict[str, Path] = {}
+    for java in ROOT.rglob("*.java"):
+        parts = java.relative_to(ROOT).parts
+        if any(part in SKIP_DIRS or part.startswith(".") for part in parts):
+            continue
+        folder = java.parent
+        if folder.resolve() == ROOT.resolve():
+            pkg = ""
+        else:
+            pkg = folder.relative_to(ROOT).as_posix().replace("/", ".")
+        found.setdefault(pkg, folder)
+    return sorted(found.items(), key=lambda item: (item[0] == "", item[0]))
+
+
+def package_label(package: str, folder: Path) -> str:
+    rel = folder.relative_to(ROOT).as_posix() or "."
+    if not package:
+        return f"(default package)  {rel}"
+    return f"{package}  ({rel})"
+
+
+def ask_existing_package() -> str:
+    packages = existing_packages()
+    if not packages:
+        die("no existing packages found — choose 'New package and class' instead")
+
+    labels = [package_label(pkg, folder) for pkg, folder in packages]
+    labels.append("Other existing package (type name)")
+    labels.append("Quit")
+    pick = ask_choice("Which existing package should the class go in?", labels)
+    if pick == len(labels):
+        print("Cancelled.")
+        sys.exit(0)
+    if pick != len(labels) - 1:
+        return packages[pick - 1][0]
+
+    while True:
+        raw = ask("Existing package name (example: week1.test): ")
+        if raw.lower() in {"default", "(default)", "(default package)"}:
+            raw = ""
+        elif raw:
+            err = package_error(raw)
+            if err:
+                print(f"  {err}")
+                continue
+        folder = package_folder(raw.strip())
+        if folder.is_dir():
+            return raw.strip()
+        print("  That package does not exist. Create a new package and class instead.")
+
+
+def ask_main() -> bool:
+    return ask_choice("Add public static void main?", ["Yes", "No"]) == 1
+
+
 def wizard() -> None:
     print("====================================")
     print("  New Java  (like Eclipse)")
     print("====================================")
 
-    choice = ask_choice(
+    mode = ask_choice(
         "What do you want to create?",
         [
-            "New Package only",
-            "New Package + Class  (with main)",
-            "New Package + Class  (no main)",
+            "New package and class",
+            "Class only (in an existing package)",
             "Quit",
         ],
     )
-    if choice == 4:
+    if mode == 3:
         print("Cancelled.")
         return
 
-    base_dir = ask_directory()
-    if base_dir == ROOT:
+    if mode == 1:
+        base_dir = ask_directory()
         example = "test"
-        hint = "created in the project root"
+        if base_dir == ROOT:
+            hint = "created in the project root"
+        else:
+            hint = f"created under {base_dir.relative_to(ROOT).as_posix()}/"
+        package_part = ask_until(
+            f"New package name under that folder (example: {example}): ",
+            package_error,
+        )
+        package = join_package(base_dir, package_part)
+        print(f"  -> {hint}  package {package}")
     else:
-        example = "test"
-        hint = f"created under {base_dir.relative_to(ROOT).as_posix()}/"
+        package = ask_existing_package()
+        label = package if package else "(default package)"
+        print(f"  -> existing package {label}")
 
-    package_part = ask_until(
-        f"Package name under that folder (example: {example}): ",
-        package_error,
-    )
-    package = join_package(base_dir, package_part)
-    print(f"  -> {hint}  package {package}")
-
-    class_name = ""
-    with_main = False
-    if choice in (2, 3):
-        class_name = ask_until("Class name (example: HelloWorld): ", class_error)
-        with_main = choice == 2
+    class_name = ask_until("Class name (example: HelloWorld): ", class_error)
+    with_main = ask_main()
 
     print()
     create(package, class_name, with_main)
@@ -238,7 +304,7 @@ def wizard() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Eclipse-style New Java Package / New Java Class"
+        description="Create a new Java package and class, or a class in an existing package"
     )
     parser.add_argument("--package", help="e.g. week1.lab or test")
     parser.add_argument("--dir", dest="base_dir", default="", help="parent folder, e.g. week1")

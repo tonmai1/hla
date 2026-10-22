@@ -1,7 +1,7 @@
 package week1.test;
 
 import java.util.ArrayList;
-
+import java.util.Iterator;
 public class Arraylist {
     // Simple PackageData class
     static class PackageData {
@@ -25,6 +25,10 @@ public class Arraylist {
         packageList.add(new PackageData("PK001", "Bangkok"));
         packageList.add(new PackageData("PK002", "London"));
         packageList.add(new PackageData("PK003", "NYC"));
+
+		for (Iterator<PackageData> it = packageList.iterator(); it.hasNext(); ) {
+			System.out.println(it.next().toString());
+		}
 
         // Print all package data
         System.out.println("All Packages in ArrayList:");
